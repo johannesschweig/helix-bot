@@ -10,8 +10,13 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
-with open('token.txt', 'r') as f:
-  TOKEN = f.readlines()[0]
+# token
+TOKEN = os.environ.get('TOKEN', None)
+if TOKEN:
+  print('token', TOKEN)
+else:
+  print('token not found')
+
 
 # jokes
 jokes = json.load(open('data/jokes.json'))
