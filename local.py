@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 with open('token.txt', 'r') as f:
   TOKEN = f.readlines()[0]
 # jokes
-jokes = json.load(open('jokes.json'))
+jokes = json.load(open('data/jokes.json'))
 
 
 # Define a few command handlers. These usually take the two arguments update and
