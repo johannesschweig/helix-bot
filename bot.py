@@ -1,8 +1,7 @@
 import logging
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import os
-import random  # for random select
-import json # to read joke file
+from utils import get_joke
 PORT = int(os.environ.get('PORT', 5000))
 
 # Enable logging
@@ -12,14 +11,6 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 # token
 TOKEN = os.environ.get('TOKEN', None)
-if TOKEN:
-  print('token', TOKEN)
-else:
-  print('token not found')
-
-
-# jokes
-jokes = json.load(open('data/jokes.json'))
 
 # Define a few command handlers. These usually take the two arguments update and
 # context. Error handlers also receive the raised TelegramError object in error.
@@ -32,19 +23,8 @@ def help(update, context):
     update.message.reply_text('Help!')
 
 def joke(update, context):
-    # Tell user a joke out of categories (if he/she knows them; otherwise just the bad ones) 
-    usi = update.message.text.lower()
-    if (usi == 'frau' or usi == 'frauen'):
-      update.message.reply_text(random.choice(jokes['Frau']))
-    elif (usi == 'mann' or usi == 'männer'):
-      update.message.reply_text(random.choice(jokes['Mann']))
-    elif (usi == 'schwarz'):
-      update.message.reply_text(random.choice(jokes['Schwarz']))
-    elif (usi == 'bedenklich'):
-      update.message.reply_text(random.choice(jokes['Bedenklich']))
-    else:
-      update.message.reply_text(random.choice(jokes['Flach']))
-
+    update.message.reply_text(get_joke(update.message.text))
+    
 def error(update, context):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, context.error)
