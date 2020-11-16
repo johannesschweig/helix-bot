@@ -1,7 +1,7 @@
 import logging
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import os
-from utils import get_joke
+from utils import get_joke, categories_cleaned
 PORT = int(os.environ.get('PORT', 5000))
 
 # Enable logging
@@ -16,7 +16,8 @@ TOKEN = os.environ.get('TOKEN', None)
 # context. Error handlers also receive the raised TelegramError object in error.
 def start(update, context):
     """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi!')
+    update.message.reply_text('Hi!\nIch bin der Helix-Witz-Bot. Witze mit Niveau von Helix!\nFolgende Kategorien stehen zur Auswahl:')
+    update.message.reply_text(', '.join(categories_cleaned))
 
 def help(update, context):
     """Send a message when the command /help is issued."""
