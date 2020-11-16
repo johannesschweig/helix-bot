@@ -7,7 +7,7 @@ import logging
 
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
-from utils import get_joke
+from utils import get_joke, categories_cleaned
 
 # Enable logging
 logging.basicConfig(
@@ -23,7 +23,8 @@ with open('token.txt', 'r') as f:
 # context. Error handlers also receive the raised TelegramError object in error.
 def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi!')
+    update.message.reply_text('Hi!\nIch bin der Helix-Witz-Bot. Witze mit Niveau von Helix!\nFolgende Kategorien stehen zur Auswahl:')
+    update.message.reply_text(', '.join(categories_cleaned))
 
 
 def help_command(update: Update, context: CallbackContext) -> None:
