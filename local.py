@@ -4,8 +4,9 @@
 # type: ignore[union-attr]
 
 import logging
+import math
 
-from telegram import Update
+from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 from utils import get_joke, categories_cleaned
 
@@ -16,15 +17,20 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 with open('token.txt', 'r') as f:
-  TOKEN = f.readlines()[0]
+  TOKEN = f.readlines()[0].strip()
 
+# create a keyboard with 3 categories per row
+rows = []
+for i in range(0, math.ceil(len(categories_cleaned)/3)):
+  rows.append(categories_cleaned[i*3:(i+1)*3])
+markup = ReplyKeyboardMarkup(rows)
 
 # Define a few command handlers. These usually take the two arguments update and
 # context. Error handlers also receive the raised TelegramError object in error.
 def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi!\nIch bin der Helix-Witz-Bot. Witze mit Niveau von Helix!\nFolgende Kategorien stehen zur Auswahl:')
-    update.message.reply_text(', '.join(categories_cleaned))
+    update.message.reply_text('Hi!\nIch bin der Helix-Witz-Bot. Witze mit Niveau von Helix!')
+    update.message.reply_text('Wähle eine Kategorie:', reply_markup=markup)
 
 
 def help_command(update: Update, context: CallbackContext) -> None:
@@ -32,7 +38,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
     update.message.reply_text('Help!')
 
 def joke(update, context):
-    update.message.reply_text(get_joke(update.message.text))
+    update.message.reply_text(get_joke(update.message.text), reply_markup=markup)
 
 def error(update, context):
     """Log Errors caused by Updates."""
