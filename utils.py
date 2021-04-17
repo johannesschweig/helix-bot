@@ -6,13 +6,15 @@ jokes = pd.read_csv('data/jokes.csv', sep=';', quotechar='\'')
 categories = jokes['category'].unique()
 categories_cleaned = [x for x in categories]
 categories_cleaned.insert(0, 'random')
+## hidden categories
 categories_cleaned.remove('bedenklich')
 categories_cleaned.remove('flach')
 
 def get_joke(text):
-    # Tell user a joke out of categories (if he/she knows them; otherwise just the bad ones) 
     text = text.lower()
+    # Tell user a joke out of categories (includes hidden categories)
     if text in categories:
-      return jokes[jokes['category'] == text].sample()['joke'].item().replace('#', '\n')
-    else:
-      return jokes.sample()['joke'].item().replace('#', '\n')
+      j = jokes[jokes['category'] == text]
+    else: # Tell a random joke except 'bedenklich'
+      j = jokes[jokes['category'] != 'bedenklich']
+    return j.sample()['joke'].item().replace('#', '\n')
