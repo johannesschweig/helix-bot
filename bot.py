@@ -1,18 +1,31 @@
-import logging
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from telegram import ReplyKeyboardMarkup
+#!/usr/bin/env python
+# pylint: disable=unused-argument, wrong-import-position
 import os
+import logging
 import math
+from telegram import __version__ as TG_VER
 from utils import get_joke, categories_cleaned
-PORT = int(os.environ.get('PORT', 5000))
+
+try:
+    from telegram import __version_info__
+except ImportError:
+    __version_info__ = (0, 0, 0, 0, 0)  # type: ignore[assignment]
+
+if __version_info__ < (20, 0, 0, "alpha", 1):
+    raise RuntimeError(
+        f"This example is not compatible with your current PTB version {TG_VER}. To view the "
+        f"{TG_VER} version of this example, "
+        f"visit https://docs.python-telegram-bot.org/en/v{TG_VER}/examples.html"
+    )
+from telegram import ReplyKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler, filters
 
 # Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
-
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
 logger = logging.getLogger(__name__)
-# token
-TOKEN = os.environ.get('TOKEN', None)
 
 # create a keyboard with 3 categories per row
 rows = []
@@ -21,54 +34,45 @@ for i in range(0, math.ceil(len(categories_cleaned)/3)):
 markup = ReplyKeyboardMarkup(rows)
 
 
-# Define a few command handlers. These usually take the two arguments update and
-# context. Error handlers also receive the raised TelegramError object in error.
-def start(update, context):
-    """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi!\nIch bin der Helix-Witz-Bot. Witze mit Niveau von Helix!')
-    update.message.reply_text('Wähle eine Kategorie:', reply_markup=markup)
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text('Hi!\nIch bin der Helix-Witz-Bot. Witze mit Niveau von Helix!\nWähle eine Kategorie:', reply_markup=markup)
 
-def help(update, context):
-    """Send a message when the command /help is issued."""
-    update.message.reply_text('Help!')
 
-def joke(update, context):
-    update.message.reply_text(get_joke(update.message.text), reply_markup=markup)
-    
-def error(update, context):
-    """Log Errors caused by Updates."""
-    logger.warning('Update "%s" caused error "%s"', update, context.error)
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Parses the CallbackQuery and updates the message text."""
+    query = update.callback_query
 
-def main():
-    """Start the bot."""
-    # Create the Updater and pass it your bot's token.
-    # Make sure to set use_context=True to use the new context based callbacks
-    # Post version 12 this will no longer be necessary
-    updater = Updater(TOKEN, use_context=True)
+    # CallbackQueries need to be answered, even if no notification to the user is needed
+    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    await query.answer()
 
-    # Get the dispatcher to register handlers
-    dp = updater.dispatcher
+    await query.edit_message_text(text=f"Selected option: {query.data}")
 
-    # on different commands - answer in Telegram
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("help", help))
+
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Displays info on how to use the bot."""
+    await update.message.reply_text("Use /start to test this bot.")
+
+# tell a joke
+async def joke(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(get_joke(update.message.text), reply_markup=markup)
+
+
+def main() -> None:
+    """Run the bot."""
+    # Create the Application and pass it your bot's token.
+    application = Application.builder().token(os.environ.get('TOKEN', None)).build()
+
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CallbackQueryHandler(button))
+    application.add_handler(CommandHandler("help", help_command))
 
     # on noncommand i.e message - tell a random joke
-    dp.add_handler(MessageHandler(Filters.text, joke))
+    application.add_handler(MessageHandler(filters.TEXT, joke))
 
-    # log all errors
-    dp.add_error_handler(error)
+    # Run the bot until the user presses Ctrl-C
+    application.run_polling()
 
-    # Start the Bot
-    updater.start_webhook(listen="0.0.0.0",
-                          port=int(PORT),
-                          url_path=TOKEN)
-    updater.bot.setWebhook('https://afternoon-ocean-20209.herokuapp.com/' + TOKEN)
 
-    # Run the bot until you press Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT. This should be used most of the time, since
-    # start_polling() is non-blocking and will stop the bot gracefully.
-    updater.idle()
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
