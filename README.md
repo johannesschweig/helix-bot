@@ -1,2 +1,2 @@
 # Helix bot
-A telegram bot (@QualityJokesByHelix) hosted on heroku that tells jokes.
+A telegram bot (@QualityJokesByHelix) hosted on fly.io that tells jokes.
