@@ -10,7 +10,6 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY data/ data/
 COPY bot.py bot.py
 COPY utils.py utils.py
 
